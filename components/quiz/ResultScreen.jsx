@@ -38,7 +38,7 @@ export default function ResultScreen({ results, onRestart }) {
         <Button 
           onClick={onRestart} 
           size="lg" 
-          className="w-full bg-slate-900 hover:bg-slate-800"
+          className="w-full bg-slate-900 hover:bg-slate-800 text-amber-50"
         >
           <RotateCcw className="mr-2 h-4 w-4" /> Reattempt Quiz [cite: 25]
         </Button>

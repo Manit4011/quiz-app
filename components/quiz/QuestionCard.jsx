@@ -1,105 +1,122 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function QuestionCard({ data, onComplete }) {
   const [selectedId, setSelectedId] = useState(null);
   const [isSolved, setIsSolved] = useState(false);
-  const [wrongAttempts, setWrongAttempts] = useState([]); // Track IDs of wrong guesses
+  const [wrongAttempts, setWrongAttempts] = useState([]);
+  const [shakeId, setShakeId] = useState(null); // For animation trigger
 
-  // Extract data safely (API structure assumption based on typical patterns)
-  // Adjust these keys based on actual API response console.log
-  const questionText = data.question;
-  const options = data.options; // Array of { id, text, isCorrect }
+  // Clean data structure from our new api.js
+  const questionText = data.question; 
+  const options = data.options; 
+
+  // Reset state when data changes (new question)
+  useEffect(() => {
+    setSelectedId(null);
+    setIsSolved(false);
+    setWrongAttempts([]);
+    setShakeId(null);
+  }, [data]);
 
   const handleSelect = (option) => {
-    if (isSolved) return; // Prevent changing after correct answer
+    if (isSolved) return; 
 
     setSelectedId(option.id);
 
     if (option.isCorrect) {
-      // Correct Answer Logic
       setIsSolved(true);
+      // Auto-advance after a brief delay for better UX
+      setTimeout(() => {
+         onComplete(wrongAttempts.length);
+      }, 1200);
     } else {
-      // Incorrect Answer Logic [cite: 20]
+      // Trigger Shake Animation
+      setShakeId(option.id);
+      setTimeout(() => setShakeId(null), 500); // Reset animation
+
       if (!wrongAttempts.includes(option.id)) {
         setWrongAttempts(prev => [...prev, option.id]);
       }
     }
   };
 
-  const handleNext = () => {
-    // Pass the number of wrong attempts incurred on THIS card back to parent
-    onComplete(wrongAttempts.length);
-  };
-
   return (
-    <Card className="shadow-md">
-      <CardHeader className="bg-slate-50/50 border-b pb-4">
-        <h2 className="text-lg font-semibold text-slate-800 leading-relaxed">
-          {questionText}
-        </h2>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-3">
-        {options.map((opt) => {
-          const isSelected = selectedId === opt.id;
-          const isWrong = wrongAttempts.includes(opt.id);
-          const isCorrect = isSolved && opt.isCorrect;
+    <div className="w-full max-w-2xl mx-auto animate-pop">
+      <Card className="glass-card border-0 rounded-3xl overflow-hidden shadow-2xl">
+        {/* Question Header */}
+        <div className="bg-white/50 p-8 border-b border-white/20">
+          <h2 className="text-2xl font-bold text-slate-800 leading-snug">
+            {questionText}
+          </h2>
+        </div>
 
-          // Dynamic Styles based on state [cite: 19]
-          let baseStyles = "w-full justify-start text-left h-auto py-4 px-4 border-2 hover:bg-slate-50";
-          let colorStyles = "border-slate-200 text-slate-700";
-          let icon = null;
+        <CardContent className="p-8 space-y-4 bg-slate-50/50">
+          {options.map((opt, index) => {
+            const isSelected = selectedId === opt.id;
+            const isWrong = wrongAttempts.includes(opt.id);
+            const isCorrect = isSolved && opt.isCorrect;
+            const shouldShake = shakeId === opt.id;
 
-          if (isCorrect) {
-            colorStyles = "border-green-500 bg-green-50 text-green-800 hover:bg-green-50";
-            icon = <CheckCircle2 className="ml-auto h-5 w-5 text-green-600" />;
-          } else if (isWrong) {
-            colorStyles = "border-red-200 bg-red-50 text-red-800 hover:bg-red-50";
-            icon = <XCircle className="ml-auto h-5 w-5 text-red-500" />;
-          } else if (isSelected) {
-            colorStyles = "border-indigo-500 ring-1 ring-indigo-500";
-          }
+            let cardStyles = "border-2 border-white bg-white hover:border-indigo-200 hover:shadow-md hover:-translate-y-1";
+            let icon = null;
 
-          return (
-            <Button
-              key={opt.id}
-              variant="ghost"
-              className={cn(baseStyles, colorStyles)}
-              onClick={() => handleSelect(opt)}
-              disabled={isSolved && !opt.isCorrect} // Disable other options once solved
-            >
-              <span className="mr-4 text-slate-400 font-mono text-xs uppercase">
-                {String.fromCharCode(65 + options.indexOf(opt))}
-              </span>
-              <span className="flex-1">{opt.text || opt.answerText}</span>
-              {icon}
-            </Button>
-          );
-        })}
+            if (isCorrect) {
+              cardStyles = "border-green-500 bg-green-50 text-green-900 ring-4 ring-green-100 scale-[1.02] z-10";
+              icon = <CheckCircle className="h-6 w-6 text-green-600 animate-in zoom-in spin-in-90 duration-300" />;
+            } else if (isWrong) {
+              cardStyles = "border-red-300 bg-red-50 text-red-900 opacity-70";
+              icon = <XCircle className="h-6 w-6 text-red-500" />;
+            } else if (isSelected) {
+               // Temporary selected state before validation
+               cardStyles = "border-indigo-500 bg-indigo-50";
+            }
 
-        {/* Feedback Area */}
-        {wrongAttempts.length > 0 && !isSolved && (
-          <p className="text-center text-red-600 text-sm font-medium animate-pulse">
-            Incorrect. Please try again. [cite: 20]
-          </p>
-        )}
+            return (
+              <button
+                key={opt.id}
+                onClick={() => handleSelect(opt)}
+                disabled={isSolved || isWrong}
+                className={cn(
+                  "relative w-full p-5 rounded-2xl flex items-center text-left transition-all duration-200 group",
+                  cardStyles,
+                  shouldShake && "animate-shake border-red-500"
+                )}
+              >
+                {/* Option Letter Bubble */}
+                <div className={cn(
+                  "h-10 w-10 flex items-center justify-center rounded-lg mr-5 text-sm font-bold transition-colors",
+                  isCorrect ? "bg-green-200 text-green-800" : 
+                  isWrong ? "bg-red-200 text-red-800" :
+                  "bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600"
+                )}>
+                  {String.fromCharCode(65 + index)}
+                </div>
 
-        {/* Next Button - Only appears when solved */}
-        {isSolved && (
-          <div className="pt-4 border-t mt-4 animate-in fade-in slide-in-from-bottom-2">
-            <Button
-              className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-200"
-              size="lg"
-              onClick={handleNext}
-            >
-              Next Question
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                <span className="flex-1 text-lg font-medium">{opt.text}</span>
+                {icon}
+              </button>
+            );
+          })}
+        </CardContent>
+        
+        {/* Footer Message */}
+        <div className="h-12 flex items-center justify-center pb-4 text-sm font-medium">
+          {isSolved ? (
+            <span className="text-green-600 animate-in fade-in slide-in-from-bottom-2">
+              🎉 Excellent! Proceeding to next question...
+            </span>
+          ) : wrongAttempts.length > 0 ? (
+             <span className="text-red-500 animate-pulse">
+               Try again! That wasn't quite right.
+             </span>
+          ) : (
+             <span className="text-slate-400">Select the correct option</span>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }
