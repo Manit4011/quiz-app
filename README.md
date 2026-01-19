@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Edzy Quiz App - Frontend Hackathon Task 3
 
-## Getting Started
+A production-ready, interactive Quiz Application built for the Edzy Frontend Hackathon. This project features a robust "Edzy Glass" UI, real-time feedback, and dynamic API integration using Next.js App Router and TanStack Query.
 
-First, run the development server:
+![Edzy Quiz Preview](https://via.placeholder.com/800x400?text=Edzy+Quiz+App+Preview)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Tech Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* **Framework:** Next.js 14 (App Router)
+* **Language:** JavaScript (ES6+)
+* **Styling:** Tailwind CSS + Shadcn/UI (Custom "Edzy Glass" Theme)
+* **State Management:** React Query (TanStack Query) v5
+* **API Client:** Axios
+* **Icons:** Lucide React
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## ✨ Key Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Dynamic Setup:** Users can select subjects (Class 10 English, Math, Science, Social Science) and question limits (5, 10, 15).
+2.  **Robust API Integration:** * Fetches live questions from the Edzy API.
+    * Includes a custom **Adapter Pattern** (`lib/api.js`) to normalize complex nested backend data into clean frontend models.
+    * Handles loading, error, and empty states gracefully.
+3.  **Interactive Quiz Experience:**
+    * **Edzy Glass UI:** Custom mesh gradient backgrounds and glassmorphism cards.
+    * **Haptic Visuals:** "Shake" animations for incorrect answers and "Pop-in" transitions for new questions.
+    * **Timer:** Per-question elapsed time tracking.
+    * **Immediate Feedback:** Visual validation (Green/Red) with explanation support.
+4.  **Resilience:** * Guards against `undefined` API responses.
+    * Auto-retry logic for network failures.
+    * Fallback mock data (if API is unreachable during demos).
 
-## Learn More
+## 🛠️ Installation & Setup
 
-To learn more about Next.js, take a look at the following resources:
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/your-username/edzy-quiz-task.git](https://github.com/your-username/edzy-quiz-task.git)
+    cd edzy-quiz-task
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-## Deploy on Vercel
+4.  **Open the app:**
+    Navigate to [http://localhost:3000](http://localhost:3000)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📂 Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+/app
+  ├── layout.js          # Root layout with QueryProvider & Mesh Gradients
+  ├── page.js            # Main Game Controller (State Machine)
+  └── globals.css        # Tailwind directives & Custom Animations
+/components
+  ├── /ui                # Reusable Shadcn primitives (Card, Button)
+  └── /quiz              # Core Game Logic
+      ├── SetupForm.jsx    # Subject selection with visual cards
+      ├── QuizBoard.jsx    # Game loop & Score tracking
+      ├── QuestionCard.jsx # Interactive question display
+      └── ResultScreen.jsx # Final performance summary
+/lib
+  ├── api.js             # Axios instance & Data Transformers
+  └── utils.js           # CSS class merging utility
